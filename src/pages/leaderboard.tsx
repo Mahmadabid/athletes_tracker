@@ -73,6 +73,12 @@ const LeaderboardPage = () => {
 
   return (
     <div className="text-center">
+      <div className="bg-indigo-900 flex justify-center py-2 px-4">
+        <div className="p-2 bg-indigo-800 items-center text-indigo-100 leading-none rounded-full flex" role="alert">
+          <span className="flex rounded-full bg-indigo-500 uppercase px-2 py-1 text-xs font-bold mr-3">Note</span>
+          <span className="font-semibold mr-2 text-left flex-auto">This page fetches all user and makes the Leaderboard for top 10</span>
+        </div>
+      </div>
       <h1 className="text-3xl font-bold mt-8 mb-4">Leaderboard</h1>
 
       <div className="flex justify-center space-x-4 mb-4">

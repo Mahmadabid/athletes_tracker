@@ -57,7 +57,7 @@ const UserPage = () => {
     setUserList([]);
     setErrorFetched(false);
     setLoading(true);
-    if (Array.isArray(users?.data)) {fetch()}
+    if (Array.isArray(users?.data)) { fetch() }
     try {
       if (Array.isArray(users?.data) && users && users.data.length > 0) {
         const filteredUsers: UserData[] = users.data.filter(
@@ -94,6 +94,12 @@ const UserPage = () => {
         </div>
       ) : (
         <div className="text-center">
+          <div className="bg-indigo-900 flex justify-center py-2 px-4">
+            <div className="p-2 bg-indigo-800 items-center text-indigo-100 leading-none rounded-full flex" role="alert">
+              <span className="flex rounded-full bg-indigo-500 uppercase px-2 py-1 text-xs font-bold mr-3">Note</span>
+              <span className="font-semibold mr-2 text-left flex-auto">This page fetches all users on load. Useful for small data</span>
+            </div>
+          </div>
           <form className="mt-8" onSubmit={(e) => {
             e.preventDefault();
             handleSearch();
@@ -167,7 +173,7 @@ const UserPage = () => {
               </table>
             </div>
           )}
-        </div>
+        </div >
       )}
     </>
   );
