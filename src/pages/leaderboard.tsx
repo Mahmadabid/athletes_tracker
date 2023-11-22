@@ -8,33 +8,41 @@ interface Athlete {
 const LeaderboardPage = () => {
   const [activeTab, setActiveTab] = useState<string>('Average Speed (m/s)');
   const [leaderboardData, setLeaderboardData] = useState<Athlete[]>([]);
+  const [leaderboardDataforFetch, setLeaderboardDataforFetch] = useState<Athlete[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [Fetch, setFetch] = useState<boolean>(false);
 
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await axios.get('/api/data');
+      const data = response.data.data;
+      setLeaderboardDataforFetch(data);
+      setFetch(true);
+
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setError('Error fetching data');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await axios.get('/api/data');
-        const data = response.data.data;
-
-        if (data.length > 0) {
-          const sortedData = data.sort((a: Athlete, b: Athlete) => parseFloat(b[activeTab]) - parseFloat(a[activeTab])).slice(0, 10);
-          setLeaderboardData(sortedData);
-        } else {
-          setError('No data found');
-        }
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        setError('Error fetching data');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchData();
-  }, [activeTab]);
+  }, []);
+
+useEffect(() => {
+    if (leaderboardDataforFetch.length > 0) {
+      const sortedData = leaderboardDataforFetch.sort((a: Athlete, b: Athlete) => parseFloat(b[activeTab]) - parseFloat(a[activeTab])).slice(0, 10);
+      setLeaderboardData(sortedData);
+      setError('')
+    } else {
+      setError('No data found');
+    }
+  }, [activeTab, Fetch]);
 
   const renderLeaderboard = (data: Athlete[], title: string) => (
     <div className={`mb-4 tab-content ${activeTab === title ? 'block' : 'hidden'}`} key={title}>
@@ -47,7 +55,7 @@ const LeaderboardPage = () => {
           </path>
         </svg>
       </div>}
-      {error && <p className="text-red-500">{error}</p>}
+      {error && !loading && <p className="text-red-500">{error}</p>}
       {!loading && !error && (
         <table className="table-auto w-full max-w-md mx-auto">
           <thead>
@@ -101,7 +109,6 @@ const LeaderboardPage = () => {
           Split Time 0-10 m
         </button>
       </div>
-
       {renderLeaderboard(leaderboardData, activeTab)}
     </div>
   );

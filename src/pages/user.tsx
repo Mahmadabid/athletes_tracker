@@ -4,33 +4,7 @@ import React, { useEffect, useState } from 'react';
 interface UserData {
   Name: string;
   'Date:time': string;
-  'Concentric Load (kg)': number;
-  'Eccentric Load (kg)': number;
-  'Concentric Speed Limit (m/s)': number;
-  'Eccentric Speed Limit (m/s)': number;
-  'Total Time (s)': number;
-  'Total Distance (m)': number;
-  'Average Speed (m/s)': number;
-  'Peak Speed (m/s)': number;
-  'Split Time 0-10 m (s)': number;
-  'Average Speed 0-10 m (m/s)': number;
-  'Peak Speed 0-10 m (m/s)': number;
-  'Split Time 10-20 m (s)': number;
-  'Split Distance 10-20 m (m)': number;
-  'Average Speed 10-20 m (m/s)': number;
-  'Peak Speed 10-20 m (m/s)': number;
-  'Split Time 20-30 m (s)': number;
-  'Split Distance 20-30 m (m)': number;
-  'Average Speed 20-30 m (m/s)': number;
-  'Peak Speed 20-30 m (m/s)': number;
-  'Split Time 30-40 m (s)': number;
-  'Split Distance 30-40 m (m)': number;
-  'Average Speed 30-40 m (m/s)': number;
-  'Peak Speed 30-40 m (m/s)': number;
-}
-
-interface ApiUserData {
-  data: UserData[];
+  [key: string]: string | number;
 }
 
 const UserPage = () => {
@@ -38,15 +12,20 @@ const UserPage = () => {
   const [userList, setUserList] = useState<UserData[]>([]);
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const [ErrorFetched, setErrorFetched] = useState<boolean>(false);
-  const [users, setUsers] = useState<ApiUserData>();
+  const [errorFetched, setErrorFetched] = useState<boolean>(false);
+  const [users, setUsers] = useState<UserData[]>();
+  const [errorReFetch, setErrorReFetch] = useState<string>('');
 
   const fetch = async () => {
-    const response = await axios.get('/api/data');
-    const userArray: ApiUserData = response.data;
-
-    setUsers(userArray)
-  }
+    try {
+      const response = await axios.get('/api/data');
+      const userArray: UserData[] = response.data.data;
+      setUsers(userArray);
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      setErrorReFetch('Something went wrong with our data. Try again!');
+    }
+  };
 
   useEffect(() => {
     fetch();
@@ -57,14 +36,22 @@ const UserPage = () => {
     setUserList([]);
     setErrorFetched(false);
     setLoading(true);
-    if (Array.isArray(users?.data)) { fetch() }
+
     try {
-      if (Array.isArray(users?.data) && users && users.data.length > 0) {
-        const filteredUsers: UserData[] = users.data.filter(
+      if (!Array.isArray(users)) {
+        await fetch();
+      }
+
+      if (Array.isArray(users) && users.length > 0) {
+        const filteredUsers: UserData[] = users.filter(
           (user) => user.Name.toLowerCase().includes(userName.toLowerCase())
         );
-        filteredUsers.length > 0 ? setUserList(filteredUsers) : setErrorFetched(true);
 
+        if (filteredUsers.length > 0) {
+          setUserList(filteredUsers);
+        } else {
+          setErrorFetched(true);
+        }
       } else {
         console.error('Invalid or empty response from the API:', users);
         setErrorFetched(true);
@@ -97,13 +84,18 @@ const UserPage = () => {
           <div className="bg-indigo-900 flex justify-center py-2 px-4">
             <div className="p-2 bg-indigo-800 items-center text-indigo-100 leading-none rounded-full flex" role="alert">
               <span className="flex rounded-full bg-indigo-500 uppercase px-2 py-1 text-xs font-bold mr-3">Note</span>
-              <span className="font-semibold mr-2 text-left flex-auto">This page fetches all users on load. Useful for small data</span>
+              <span className="font-semibold mr-2 text-left flex-auto">
+                This page fetches all users on load. Useful for small data
+              </span>
             </div>
           </div>
-          <form className="mt-8" onSubmit={(e) => {
-            e.preventDefault();
-            handleSearch();
-          }}>
+          <form
+            className="mt-8"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSearch();
+            }}
+          >
             <label className="block text-2xl font-bold mb-2" htmlFor="userName">
               Enter User Name:
             </label>
@@ -116,10 +108,7 @@ const UserPage = () => {
                 onChange={(e) => setUserName(e.target.value)}
                 required
               />
-              <button
-                type='submit'
-                className="bg-blue-500 text-white px-4 mx-4 py-2 rounded"
-              >
+              <button type="submit" className="bg-blue-500 text-white px-4 mx-4 py-2 rounded">
                 Search
               </button>
             </div>
@@ -142,7 +131,13 @@ const UserPage = () => {
               </div>
             </>
           ) : (
-            <>{ErrorFetched ? <p className='text-xl text-red-600 font-semibold mt-4'>User not Found</p> : <p>Enter a user name to fetch data</p>}</>
+            <>{errorFetched ? (errorReFetch.length > 0 ? (
+              <p className="text-xl text-red-600 font-semibold mt-4">{errorReFetch}</p>
+            ) : (
+              <p className="text-xl text-red-600 font-semibold mt-4">User not Found</p>
+            )) : (
+              <p>Enter a user name to fetch data</p>
+            )}</>
           )}
           {selectedUser && (
             <div>
@@ -161,11 +156,11 @@ const UserPage = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {Object.entries(selectedUser).map(([key, value]: [string, string], index: number) => (
+                  {Object.entries(selectedUser).map(([key, value]: [string, string | number], index: number) => (
                     key !== 'Name' && key !== 'Date:time' && (
                       <tr key={index}>
                         <td className="border px-4 font-medium py-2">{key as string}</td>
-                        <td className="border px-4 py-2">{value as string | number}</td>
+                        <td className="border px-4 py-2">{value}</td>
                       </tr>
                     )
                   ))}
@@ -173,7 +168,7 @@ const UserPage = () => {
               </table>
             </div>
           )}
-        </div >
+        </div>
       )}
     </>
   );
