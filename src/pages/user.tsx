@@ -41,12 +41,13 @@ const UserPage = () => {
   const [ErrorFetched, setErrorFetched] = useState<boolean>(false);
   const [users, setUsers] = useState<ApiUserData>();
 
+  const fetch = async () => {
+    const response = await axios.get('/api/data');
+    const user: ApiUserData = response.data;
+    setUsers(user)
+  }
+
   useEffect(() => {
-    const fetch = async () => {
-      const response = await axios.get('/api/data');
-      const user: ApiUserData = response.data;
-      setUsers(user)
-    }
     fetch();
   }, []);
 
@@ -55,6 +56,7 @@ const UserPage = () => {
     setUserList([]);
     setErrorFetched(false);
     setLoading(true);
+    if (Array.isArray(users?.data)) {fetch()}
     try {
       if (Array.isArray(users?.data) && users && users.data.length > 0) {
         const filteredUsers: UserData[] = users.data.filter(
