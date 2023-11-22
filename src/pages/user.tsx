@@ -43,8 +43,9 @@ const UserPage = () => {
 
   const fetch = async () => {
     const response = await axios.get('/api/data');
-    const user: ApiUserData = response.data;
-    setUsers(user)
+    const userArray: ApiUserData = response.data;
+
+    setUsers(userArray)
   }
 
   useEffect(() => {
