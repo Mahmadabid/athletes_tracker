@@ -1,5 +1,5 @@
 import axios from 'axios';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface UserData {
   Name: string;
@@ -38,25 +38,37 @@ const UserPage = () => {
   const [userList, setUserList] = useState<UserData[]>([]);
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [ErrorFetched, setErrorFetched] = useState<boolean>(false);
+  const [users, setUsers] = useState<ApiUserData>();
+
+  useEffect(() => {
+    const fetch = async () => {
+      const response = await axios.get('/api/data');
+      const user: ApiUserData = response.data;
+      setUsers(user)
+    }
+    fetch();
+  }, []);
 
   const handleSearch = async () => {
+    setSelectedUser(null);
+    setUserList([]);
+    setErrorFetched(false);
     setLoading(true);
     try {
-      const response = await axios.get('/api/data');
-      const users: ApiUserData = response.data;
-
-      if (Array.isArray(users.data) && users.data.length > 0) {
+      if (Array.isArray(users?.data) && users && users.data.length > 0) {
         const filteredUsers: UserData[] = users.data.filter(
           (user) => user.Name.toLowerCase().includes(userName.toLowerCase())
         );
+        filteredUsers.length > 0 ? setUserList(filteredUsers) : setErrorFetched(true);
 
-        setUserList(filteredUsers);
-        setSelectedUser(null);
       } else {
         console.error('Invalid or empty response from the API:', users);
+        setErrorFetched(true);
       }
     } catch (error) {
       console.error('Error fetching user data:', error);
+      setErrorFetched(true);
     } finally {
       setLoading(false);
     }
@@ -69,7 +81,7 @@ const UserPage = () => {
   return (
     <>
       {loading ? (
-        <div className="mt-8 flex justify-center">
+        <div className="mt-20 flex justify-center">
           <svg className="animate-spin w-7 h-7 mr-3 fill-slate-800" viewBox="3 3 18 18">
             <path className="opacity-20" d="M12 5C8.13401 5 5 8.13401 5 12C5 15.866 8.13401 19 12 19C15.866 19 19 15.866 19 12C19 8.13401 15.866 5 12 5ZM3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12Z">
             </path>
@@ -79,7 +91,10 @@ const UserPage = () => {
         </div>
       ) : (
         <div className="text-center">
-          <div className="mt-8">
+          <form className="mt-8" onSubmit={(e) => {
+            e.preventDefault();
+            handleSearch();
+          }}>
             <label className="block text-2xl font-bold mb-2" htmlFor="userName">
               Enter User Name:
             </label>
@@ -90,15 +105,16 @@ const UserPage = () => {
                 className="border my-2 border-gray-300 p-2 rounded-md"
                 value={userName}
                 onChange={(e) => setUserName(e.target.value)}
+                required
               />
               <button
+                type='submit'
                 className="bg-blue-500 text-white px-4 mx-4 py-2 rounded"
-                onClick={handleSearch}
               >
                 Search
               </button>
             </div>
-          </div>
+          </form>
           {userList.length > 0 ? (
             <>
               <h2 className="text-xl font-bold mt-4 mb-2">Matching Users</h2>
@@ -117,7 +133,7 @@ const UserPage = () => {
               </div>
             </>
           ) : (
-            <p>{userName ? 'User not found' : 'Enter a user name to fetch data'}</p>
+            <>{ErrorFetched ? <p className='text-xl text-red-600 font-semibold mt-4'>User not Found</p> : <p>Enter a user name to fetch data</p>}</>
           )}
           {selectedUser && (
             <div>
