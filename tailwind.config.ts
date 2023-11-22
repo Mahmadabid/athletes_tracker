@@ -18,6 +18,7 @@ const config: Config = {
     },
     screens: {
       'xse': {'max': '360px'},
+      'xb': {'max': '430px'},
       ...defaultTheme.screens,
     },
   },
