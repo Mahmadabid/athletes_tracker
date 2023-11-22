@@ -11,8 +11,8 @@ const Home = () => {
         <Link href="/user">
           <p className="bg-blue-500 text-white px-4 py-2 rounded">User</p>
         </Link>
-        <Link href="/leaderboards">
-          <p className="bg-blue-500 text-white px-4 py-2 rounded">Leaderboards</p>
+        <Link href="/leaderboard">
+          <p className="bg-blue-500 text-white px-4 py-2 rounded">Leaderboard</p>
         </Link>
       </div>
     </div>
