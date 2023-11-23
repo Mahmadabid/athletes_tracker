@@ -18,7 +18,7 @@ const UserImprovedPage = () => {
 
   const fetchName = async () => {
     try {
-      const response = await axios.get('/api/userbyreq');
+      const response = await axios.get('/api/userbyname');
       const namesArray: string[] = response.data;
       const indexedNames = namesArray.map((name, index) => ({ name, index: index + 1 }));
       setUserNameArray(indexedNames.slice(1));
@@ -30,7 +30,7 @@ const UserImprovedPage = () => {
   const fetchData = async (rowNumber: number) => {
     try {
       setLoading(true);
-      const response = await axios.get(`/api/userbyrow?number=${rowNumber}`);
+      const response = await axios.get(`/api/userbyreq?number=${rowNumber}`);
       const userData: UserData = response.data.data;
       setSelectedUser(userData);
     } catch (error) {
